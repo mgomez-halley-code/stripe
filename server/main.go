@@ -9,11 +9,27 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/stripe/stripe-go/v83"
 	"github.com/stripe/stripe-go/v83/paymentintent"
 	"github.com/stripe/stripe-go/v83/webhook"
 )
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 func main() {
 	err := godotenv.Load()
@@ -30,13 +46,22 @@ func main() {
 		URL:     "https://github.com/stripe-samples",
 	})
 
-	http.Handle("/", http.FileServer(http.Dir(os.Getenv("STATIC_DIR"))))
-	http.HandleFunc("/config", handleConfig)
-	http.HandleFunc("/create-payment-intent", handleCreatePaymentIntent)
-	http.HandleFunc("/webhook", handleWebhook)
+	// Create Gorilla Mux router
+	r := mux.NewRouter()
 
-	log.Println("server running at 0.0.0.0:4242")
-	http.ListenAndServe("0.0.0.0:4242", nil)
+	// Add CORS middleware
+	r.Use(corsMiddleware)
+
+	// Define API routes first (more specific routes before catch-all)
+	r.HandleFunc("/config", handleConfig).Methods("GET", "OPTIONS")
+	r.HandleFunc("/create-payment-intent", handleCreatePaymentIntent).Methods("POST", "OPTIONS")
+	r.HandleFunc("/webhook", handleWebhook).Methods("POST", "OPTIONS")
+
+	// Static file server as fallback (must be last)
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir(os.Getenv("STATIC_DIR"))))
+
+	log.Println("server running at 0.0.0.0:4242 with Gorilla Mux")
+	http.ListenAndServe("0.0.0.0:4242", r)
 }
 
 // ErrorResponseMessage represents the structure of the error
