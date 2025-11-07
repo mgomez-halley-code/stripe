@@ -1,4 +1,4 @@
-module github.com/mgomez-halley-code/stripe
+module github.com/stripe-payment-server
 
 go 1.23.4
 

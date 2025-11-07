@@ -1,6 +1,22 @@
 # Stripe Payment Server
 
-Go backend server that handles Stripe payment intents and webhooks.
+Go backend server that handles Stripe payment intents and webhooks with clean architecture.
+
+## Project Structure
+
+```
+server/
+├── cmd/
+│   └── server/          # Application entry point
+│       └── main.go
+├── internal/
+│   ├── bootstrap/       # Dependency initialization with lazy loading
+│   ├── config/          # Configuration management
+│   ├── handlers/        # HTTP request handlers
+│   └── middleware/      # HTTP middleware (CORS, etc.)
+├── .env                 # Environment variables (not committed)
+└── go.mod
+```
 
 ## Setup
 
@@ -10,6 +26,8 @@ STRIPE_SECRET_KEY=sk_test_your_secret_key_here
 STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
 STATIC_DIR=../client/dist
+PORT=4242
+HOST=0.0.0.0
 ```
 
 Get your API keys from the [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys)
@@ -21,7 +39,7 @@ go mod download
 
 3. Run the server:
 ```bash
-go run main.go
+go run cmd/server/main.go
 ```
 
 The server will run on `http://localhost:4242`
