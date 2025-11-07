@@ -6,17 +6,21 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/stripe/stripe-go/v83"
 )
 
 // Handler holds dependencies for HTTP handlers
 type Handler struct {
+	stripeClient   *stripe.Client
 	publishableKey string
 	webhookSecret  string
 }
 
 // NewHandler creates a new handler instance
-func NewHandler(publishableKey, webhookSecret string) *Handler {
+func NewHandler(stripeClient *stripe.Client, publishableKey, webhookSecret string) *Handler {
 	return &Handler{
+		stripeClient:   stripeClient,
 		publishableKey: publishableKey,
 		webhookSecret:  webhookSecret,
 	}

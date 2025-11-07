@@ -5,20 +5,20 @@ import (
 	"net/http"
 
 	"github.com/stripe/stripe-go/v83"
-	"github.com/stripe/stripe-go/v83/paymentintent"
 )
 
 // HandleCreatePaymentIntent creates a new Stripe payment intent
 func (h *Handler) HandleCreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
-	params := &stripe.PaymentIntentParams{
+	params := &stripe.PaymentIntentCreateParams{
 		Amount:   stripe.Int64(1999),
 		Currency: stripe.String("EUR"),
-		AutomaticPaymentMethods: &stripe.PaymentIntentAutomaticPaymentMethodsParams{
+		AutomaticPaymentMethods: &stripe.PaymentIntentCreateAutomaticPaymentMethodsParams{
 			Enabled: stripe.Bool(true),
 		},
 	}
 
-	pi, err := paymentintent.New(params)
+	// Use the new client-based API
+	pi, err := h.stripeClient.V1PaymentIntents.Create(r.Context(), params)
 	if err != nil {
 		// Try to safely cast a generic error to a stripe.Error
 		if stripeErr, ok := err.(*stripe.Error); ok {

@@ -25,10 +25,11 @@ func main() {
 	)
 
 	// Initialize Stripe client (lazy loaded)
-	_ = boot.StripeClient()
+	stripeClient := boot.StripeClient()
 
-	// Create API handler
+	// Create API handler with stripe client
 	h := api.NewHandler(
+		stripeClient,
 		boot.StripePublishableKey(),
 		boot.StripeWebhookSecret(),
 	)
