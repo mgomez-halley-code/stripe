@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 // responseWriter wraps http.ResponseWriter to capture the status code
@@ -26,25 +27,26 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-// Logging logs HTTP requests with method, path, status code, and duration
-func Logging(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+// LoggingWithLogger creates a logging middleware with the provided logger
+func LoggingWithLogger(logger *logrus.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
 
-		// Wrap the response writer to capture status code
-		wrappedWriter := newResponseWriter(w)
+			// Wrap the response writer to capture status code
+			wrappedWriter := newResponseWriter(w)
 
-		// Call the next handler
-		next.ServeHTTP(wrappedWriter, r)
+			// Call the next handler
+			next.ServeHTTP(wrappedWriter, r)
 
-		// Log the request details
-		duration := time.Since(start)
-		log.Printf(
-			"%s %s - Status: %d - Duration: %v",
-			r.Method,
-			r.URL.Path,
-			wrappedWriter.statusCode,
-			duration,
-		)
-	})
+			// Log the request details with structured logging
+			duration := time.Since(start)
+			logger.WithFields(logrus.Fields{
+				"method":   r.Method,
+				"path":     r.URL.Path,
+				"status":   wrappedWriter.statusCode,
+				"duration": duration,
+			}).Info("HTTP request")
+		})
+	}
 }

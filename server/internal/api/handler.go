@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v83"
 )
 
@@ -15,14 +15,16 @@ type Handler struct {
 	stripeClient   *stripe.Client
 	publishableKey string
 	webhookSecret  string
+	logger         *logrus.Logger
 }
 
 // NewHandler creates a new handler instance
-func NewHandler(stripeClient *stripe.Client, publishableKey, webhookSecret string) *Handler {
+func NewHandler(stripeClient *stripe.Client, publishableKey, webhookSecret string, logger *logrus.Logger) *Handler {
 	return &Handler{
 		stripeClient:   stripeClient,
 		publishableKey: publishableKey,
 		webhookSecret:  webhookSecret,
+		logger:         logger,
 	}
 }
 
@@ -38,7 +40,7 @@ type ErrorResponse struct {
 
 // HandleConfig returns the Stripe publishable key
 func (h *Handler) HandleConfig(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, struct {
+	h.writeJSON(w, struct {
 		PublishableKey string `json:"publishableKey"`
 	}{
 		PublishableKey: h.publishableKey,
@@ -46,31 +48,31 @@ func (h *Handler) HandleConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 // writeJSON writes a JSON response
-func writeJSON(w http.ResponseWriter, v interface{}) {
+func (h *Handler) writeJSON(w http.ResponseWriter, v interface{}) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(v); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("json.NewEncoder.Encode: %v", err)
+		h.logger.WithError(err).Error("Failed to encode JSON response")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := io.Copy(w, &buf); err != nil {
-		log.Printf("io.Copy: %v", err)
+		h.logger.WithError(err).Error("Failed to write JSON response")
 	}
 }
 
 // writeJSONError writes a JSON error response
-func writeJSONError(w http.ResponseWriter, v interface{}, code int) {
+func (h *Handler) writeJSONError(w http.ResponseWriter, v interface{}, code int) {
 	w.WriteHeader(code)
-	writeJSON(w, v)
+	h.writeJSON(w, v)
 }
 
 // writeJSONErrorMessage writes a JSON error message response
-func writeJSONErrorMessage(w http.ResponseWriter, message string, code int) {
+func (h *Handler) writeJSONErrorMessage(w http.ResponseWriter, message string, code int) {
 	resp := &ErrorResponse{
 		Error: &ErrorResponseMessage{
 			Message: message,
 		},
 	}
-	writeJSONError(w, resp, code)
+	h.writeJSONError(w, resp, code)
 }

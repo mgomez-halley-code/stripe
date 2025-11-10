@@ -4,15 +4,16 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"github.com/stripe-payment-server/internal/middleware"
 )
 
 // NewRouter creates and configures the HTTP router
-func NewRouter(h *Handler, staticDir string) *mux.Router {
+func NewRouter(h *Handler, staticDir string, logger *logrus.Logger) *mux.Router {
 	r := mux.NewRouter()
 
 	// Add middleware (order matters - logging first, then CORS)
-	r.Use(middleware.Logging)
+	r.Use(middleware.LoggingWithLogger(logger))
 	r.Use(middleware.CORS)
 
 	// Define API routes
