@@ -2,8 +2,15 @@ import {
   PaymentElement,
   LinkAuthenticationElement
 } from '@stripe/react-stripe-js'
-import {useState} from 'react'
-import {useStripe, useElements} from '@stripe/react-stripe-js';
+import { useState } from 'react'
+import { useStripe, useElements } from '@stripe/react-stripe-js';
+import {
+  StyledForm,
+  SubmitButton,
+  ButtonText,
+  Spinner,
+  ErrorMessage
+} from './CheckoutForm.styled';
 
 export default function CheckoutForm() {
   const stripe = useStripe();
@@ -45,24 +52,15 @@ export default function CheckoutForm() {
   }
 
   return (
-    <form id="payment-form" onSubmit={handleSubmit}>
-      <LinkAuthenticationElement id="link-authentication-element"
-        // Access the email value like so:
-        // onChange={(event) => {
-        //  setEmail(event.value.email);
-        // }}
-        //
-        // Prefill the email field like so:
-        // options={{defaultValues: {email: 'foo@bar.com'}}}
-        />
+    <StyledForm onSubmit={handleSubmit}>
+      <LinkAuthenticationElement id="link-authentication-element" />
       <PaymentElement id="payment-element" />
-      <button disabled={isLoading || !stripe || !elements} id="submit">
-        <span id="button-text">
-          {isLoading ? <div className="spinner" id="spinner"></div> : "Pay now"}
-        </span>
-      </button>
-      {/* Show any error or success messages */}
-      {message && <div id="payment-message">{message}</div>}
-    </form>
+      <SubmitButton disabled={isLoading || !stripe || !elements} type="submit">
+        <ButtonText>
+          {isLoading ? <Spinner /> : "Pay now"}
+        </ButtonText>
+      </SubmitButton>
+      {message && <ErrorMessage>{message}</ErrorMessage>}
+    </StyledForm>
   )
 }

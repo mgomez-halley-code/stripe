@@ -1,8 +1,7 @@
-import {useEffect, useState} from 'react';
+import { useState, useEffect } from 'react';
 
-function Completion(props) {
-  const [ messageBody, setMessageBody ] = useState('');
-  const { stripePromise } = props;
+export const usePaymentStatus = (stripePromise) => {
+  const [messageBody, setMessageBody] = useState('');
 
   useEffect(() => {
     if (!stripePromise) return;
@@ -18,13 +17,5 @@ function Completion(props) {
     });
   }, [stripePromise]);
 
-  return (
-    <>
-      <h1>Thank you!</h1>
-      <a href="/">home</a>
-      <div id="messages" role="alert" style={messageBody ? {display: 'block'} : {}}>{messageBody}</div>
-    </>
-  );
-}
-
-export default Completion;
+  return messageBody;
+};
