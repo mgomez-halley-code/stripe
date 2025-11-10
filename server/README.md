@@ -10,12 +10,23 @@ server/
 │   └── server/          # Application entry point
 │       └── main.go
 ├── internal/
-│   ├── bootstrap/       # Dependency initialization with lazy loading
+│   ├── api/             # API handlers and routing
+│   │   ├── constants.go
+│   │   ├── create_payment_intent.go
+│   │   ├── handler.go
+│   │   ├── router.go
+│   │   └── webhook.go
+│   ├── bootstrap/       # Dependency initialization
+│   │   ├── bootstrap.go
+│   │   └── logger.go
 │   ├── config/          # Configuration management
-│   ├── handlers/        # HTTP request handlers
-│   └── middleware/      # HTTP middleware (CORS, etc.)
+│   │   └── config.go
+│   └── middleware/      # HTTP middleware
+│       ├── cors.go
+│       └── logging.go
 ├── .env                 # Environment variables (not committed)
-└── go.mod
+├── go.mod
+└── go.sum
 ```
 
 ## Setup
@@ -55,7 +66,7 @@ The server will run on `http://localhost:4242`
 Install the [Stripe CLI](https://stripe.com/docs/stripe-cli) and forward webhooks:
 
 ```bash
-stripe listen --forward-to localhost:4242/webhook
+stripe listen --forward-to localhost:3000/webhook
 ```
 
 This will give you a webhook secret to use in your `.env` file.
